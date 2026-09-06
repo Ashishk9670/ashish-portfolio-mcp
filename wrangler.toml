@@ -1,0 +1,16 @@
+name = "ashish-portfolio-mcp"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[alias]
+"ai" = "./shims/ai.ts"
+
+[durable_objects]
+bindings = [
+  { name = "MCP_OBJECT", class_name = "PortfolioMCP" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PortfolioMCP"]
