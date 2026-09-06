@@ -2,6 +2,8 @@
 
 An MCP (Model Context Protocol) server that exposes [Ashish Kumar's portfolio](https://ashishk9670.github.io/portfolio/) — experience, projects, skills, and writing — as structured tools any MCP-aware AI client can query, instead of scraping HTML.
 
+**Live:** `https://ashish-portfolio-mcp.ashishk.workers.dev/mcp` (Streamable HTTP) or `/sse` (legacy SSE). No install needed — point any MCP client at the URL.
+
 Built as a companion to the portfolio site itself: [`ashishk9670/portfolio`](https://github.com/Ashishk9670/portfolio) exports its data as static JSON at build time (`public/data/*.json`), and this server fetches that JSON at request time. Same source of truth, two deploys, no duplicated resume data.
 
 ## Tools
@@ -39,16 +41,16 @@ npx @modelcontextprotocol/inspector --cli http://localhost:8787/mcp --method too
 npx @modelcontextprotocol/inspector --cli http://localhost:8787/mcp --method tools/call --tool-name get_contact_info
 ```
 
-## Deploying the remote server
+## Redeploying
+
+Already live at `https://ashish-portfolio-mcp.ashishk.workers.dev`. To ship a change:
 
 ```bash
 npx wrangler login     # one-time, opens a browser to authenticate with your Cloudflare account
 npm run deploy
 ```
 
-This publishes to `https://ashish-portfolio-mcp.<your-subdomain>.workers.dev`. Update `docs/mcp` on the portfolio site with the real URL once deployed.
-
-To connect Claude Code or Claude Desktop to the deployed server, add it as a remote MCP server pointing at `https://<your-worker-url>/mcp`.
+To connect Claude Code or Claude Desktop to it, add it as a remote MCP server pointing at `https://ashish-portfolio-mcp.ashishk.workers.dev/mcp`.
 
 ## Using it locally via stdio
 
