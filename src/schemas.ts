@@ -90,6 +90,7 @@ export const PostMetaSchema = z.object({
   title: z.string(),
   description: z.string(),
   date: z.string(),
+  readTimeMinutes: z.number(),
 });
 
 export const PostSchema = PostMetaSchema.extend({
