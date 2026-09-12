@@ -97,6 +97,18 @@ export const PostSchema = PostMetaSchema.extend({
   content: z.string(),
 });
 
+export const VisitLocationSchema = z.object({
+  lat: z.number(),
+  lon: z.number(),
+  country: z.string(),
+  city: z.string(),
+  count: z.number(),
+});
+
+export const VisitsResponseSchema = z.array(VisitLocationSchema);
+
+export type VisitLocation = z.infer<typeof VisitLocationSchema>;
+
 export type Profile = z.infer<typeof ProfileSchema>;
 export type ExperienceEntry = z.infer<typeof ExperienceEntrySchema>;
 export type Project = z.infer<typeof ProjectSchema>;

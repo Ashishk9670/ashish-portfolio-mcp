@@ -11,6 +11,10 @@ bindings = [
   { name = "MCP_OBJECT", class_name = "PortfolioMCP" }
 ]
 
+[[kv_namespaces]]
+binding = "VISITORS"
+id = "471a4e9deb7f495b8a91c26b1682be4c"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["PortfolioMCP"]
