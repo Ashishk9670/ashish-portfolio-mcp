@@ -1,5 +1,10 @@
 import { ContactMessageSchema } from "./schemas";
-import { getProfile } from "./data";
+
+// Not profile.email (the public contact address shown on the site): Resend's
+// sandbox sender (onboarding@resend.dev, used below since there's no verified
+// custom domain) can only deliver to the address the Resend account itself
+// was signed up with. The two happen to be different addresses here.
+const NOTIFY_EMAIL = "ashish.lumia9670@gmail.com";
 
 const RATE_LIMIT_PREFIX = "msg-rate:";
 const RATE_LIMIT_MAX = 3;
@@ -44,8 +49,6 @@ export async function sendContactMessage(
     return { ok: true };
   }
 
-  const profile = await getProfile();
-
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -54,7 +57,7 @@ export async function sendContactMessage(
     },
     body: JSON.stringify({
       from: "Portfolio Contact <onboarding@resend.dev>",
-      to: profile.email,
+      to: NOTIFY_EMAIL,
       reply_to: email,
       subject: `Portfolio message from ${name || email}`,
       text: `${message}\n\n—\n${name ? `${name} · ` : ""}${email}`,
