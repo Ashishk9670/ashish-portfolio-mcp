@@ -97,6 +97,15 @@ export const PostSchema = PostMetaSchema.extend({
   content: z.string(),
 });
 
+export const ContactMessageSchema = z.object({
+  name: z.string().trim().max(120).optional(),
+  email: z.string().trim().email().max(200),
+  message: z.string().trim().min(1).max(4000),
+  // Honeypot: a field real visitors never see or fill. Non-empty means a bot filled every
+  // input it found — reject without telling the sender why, so bots don't learn to skip it.
+  website: z.string().max(0).optional(),
+});
+
 export const VisitLocationSchema = z.object({
   lat: z.number(),
   lon: z.number(),
