@@ -101,9 +101,10 @@ export const ContactMessageSchema = z.object({
   name: z.string().trim().max(120).optional(),
   email: z.string().trim().email().max(200),
   message: z.string().trim().min(1).max(4000),
-  // Honeypot: a field real visitors never see or fill. Non-empty means a bot filled every
-  // input it found — reject without telling the sender why, so bots don't learn to skip it.
-  website: z.string().max(0).optional(),
+  // Honeypot: a field real visitors never see or fill. Deliberately unconstrained here —
+  // a max(0) would make Zod itself reject a filled one with a 400, which is exactly the
+  // distinguishable response messages.ts's own check is designed to avoid giving a bot.
+  website: z.string().max(500).optional(),
 });
 
 export const VisitLocationSchema = z.object({
