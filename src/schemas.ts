@@ -74,6 +74,7 @@ export const PrincipleSchema = z.object({
 export const AboutDataSchema = z.object({
   milestones: z.array(MilestoneSchema),
   philosophy: z.array(PrincipleSchema),
+  leadership: z.array(PrincipleSchema),
   education: z.object({
     school: z.string(),
     degree: z.string(),

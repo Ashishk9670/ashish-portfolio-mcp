@@ -47,7 +47,7 @@ export function registerPortfolioTools(server: McpServer) {
     {
       title: "Get background and philosophy",
       description:
-        "Ashish Kumar's career timeline, engineering philosophy/principles, education, certifications, and achievements.",
+        "Ashish Kumar's career timeline, engineering philosophy/principles, leadership and mentoring examples, education, certifications, and achievements.",
     },
     async () => jsonResult(await getAbout())
   );
