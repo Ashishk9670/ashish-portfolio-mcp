@@ -3,6 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerPortfolioTools } from "./tools";
 import { extractLocation, getVisits, recordVisit } from "./visitors";
 import { isRateLimited, sendContactMessage } from "./messages";
+import { handleEvent, handleStats, pruneEvents, statsCorsHeaders, type AnalyticsEnv } from "./analytics";
 
 export class PortfolioMCP extends McpAgent {
   server = new McpServer({ name: "ashish-kumar-portfolio", version: "1.0.0" });
@@ -12,7 +13,7 @@ export class PortfolioMCP extends McpAgent {
   }
 }
 
-type Env = {
+type Env = AnalyticsEnv & {
   VISITORS: KVNamespace;
   RESEND_API_KEY: string;
 };
@@ -23,7 +24,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-const BEACON_PATHS = new Set(["/visit", "/visits", "/message"]);
+const BEACON_PATHS = new Set(["/visit", "/visits", "/message", "/event"]);
 
 export default {
   async fetch(request: Request, env: Env & Record<string, unknown>, ctx: ExecutionContext) {
@@ -31,6 +32,15 @@ export default {
 
     if (request.method === "OPTIONS" && BEACON_PATHS.has(url.pathname)) {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    if (url.pathname === "/stats") {
+      if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: statsCorsHeaders(request) });
+      if (request.method === "GET") return handleStats(request, env, Date.now());
+    }
+
+    if (url.pathname === "/event" && request.method === "POST") {
+      return handleEvent(request, env, Date.now());
     }
 
     if (url.pathname === "/visit" && request.method === "POST") {
@@ -86,5 +96,9 @@ export default {
       "Ashish Kumar's portfolio MCP server.\n\nConnect via Streamable HTTP at /mcp, or legacy SSE at /sse.\n\nSource: https://github.com/Ashishk9670/ashish-portfolio-mcp",
       { status: 200, headers: { "Content-Type": "text/plain" } }
     );
+  },
+
+  async scheduled(_controller: ScheduledController, env: Env) {
+    await pruneEvents(env.ANALYTICS, Date.now());
   },
 };
