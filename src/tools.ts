@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getAbout, getExperience, getPost, getProfile, getProjects, getSkills, listPosts } from "./data";
+import { getAbout, getExperience, getHiring, getMentoring, getPost, getProfile, getProjects, getQuality, getSkills, listPosts } from "./data";
 
 function jsonResult(data: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
@@ -69,9 +69,40 @@ export function registerPortfolioTools(server: McpServer) {
         github: profile.github,
         linkedin: profile.linkedin,
         availableForOpportunities: profile.availableForOpportunities,
-        website: profile.siteUrl,
+        // Tagged so visits that start from an AI assistant show up as their own source in site analytics.
+        website: `${profile.siteUrl}/?utm_source=mcp`,
       });
     }
+  );
+
+  server.registerTool(
+    "get_hiring_info",
+    {
+      title: "Get hiring logistics",
+      description:
+        "Ashish Kumar's target roles, notice period, location and relocation/visa situation, interview formats he's comfortable with, core strengths, domains, and the teams he has worked with across time zones.",
+    },
+    async () => jsonResult(await getHiring())
+  );
+
+  server.registerTool(
+    "get_quality_metrics",
+    {
+      title: "Get quality metrics and case studies",
+      description:
+        "The quality metrics Ashish Kumar makes release decisions with (escaped defects, flaky-test rate, regression time, AI effectiveness, and more), each labeled with its source, plus his quality-engineering case studies.",
+    },
+    async () => jsonResult(await getQuality())
+  );
+
+  server.registerTool(
+    "get_mentoring",
+    {
+      title: "Get mentoring and career guidance",
+      description:
+        "Career guidance Ashish Kumar offers to QA engineers and SDETs: who it's for, topics, session types (free ones marked), and the Topmate booking link.",
+    },
+    async () => jsonResult(await getMentoring())
   );
 
   server.registerTool(

@@ -49,6 +49,8 @@ const SOURCES: [RegExp, string][] = [
   [/(^|\.)duckduckgo\.com$/, "DuckDuckGo"],
   [/(^|\.)topmate\.io$|^topmate$/, "Topmate"],
   [/(^|\.)(chatgpt\.com|openai\.com|perplexity\.ai|claude\.ai)$/, "AI assistant"],
+  [/^mcp$/, "AI assistant (MCP)"],
+  [/^resume$/, "Resume PDF"],
 ];
 
 // `raw` is either a utm_source value or the referring hostname.

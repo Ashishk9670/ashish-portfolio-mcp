@@ -27,6 +27,7 @@ export const ExperienceEntrySchema = z.object({
   bullets: z.array(z.string()),
   stats: z.array(StatSchema),
   impact: z.string(),
+  stack: z.array(z.string()).optional(),
 });
 
 export const ProjectSchema = z.object({
@@ -69,6 +70,7 @@ export const MilestoneSchema = z.object({
 export const PrincipleSchema = z.object({
   title: z.string(),
   description: z.string(),
+  practice: z.string().optional(),
 });
 
 export const AboutDataSchema = z.object({
@@ -84,6 +86,63 @@ export const AboutDataSchema = z.object({
   }),
   certifications: z.array(z.string()),
   achievements: z.array(z.string()),
+});
+
+export const HiringDataSchema = z.object({
+  experience: z.string(),
+  targetRoles: z.string(),
+  location: z.string(),
+  relocation: z.string(),
+  domains: z.string(),
+  leadership: z.string(),
+  coreStrengths: z.array(z.string()),
+  coreStack: z.array(z.string()),
+  highlights: z.array(z.string()),
+  globalTeams: z.array(z.object({ company: z.string(), locations: z.array(z.string()) })),
+  faq: z.array(z.object({ question: z.string(), answer: z.string(), meta: z.string() })),
+});
+
+const QualitySectionSchema = z.object({
+  heading: z.string(),
+  label: z.string().optional(),
+  body: z.array(z.string()).optional(),
+  bullets: z.array(z.string()).optional(),
+  table: z
+    .object({ caption: z.string(), columns: z.array(z.string()), rows: z.array(z.array(z.string())) })
+    .optional(),
+});
+
+export const QualityDataSchema = z.object({
+  statement: z.object({ heading: z.string(), body: z.array(z.string()), pillars: z.array(z.string()) }),
+  metrics: z.array(
+    z.object({
+      name: z.string(),
+      value: z.string(),
+      context: z.string().optional(),
+      shows: z.string(),
+      evidence: z.string(),
+      source: z.string(),
+    })
+  ),
+  caseStudies: z.array(
+    z.object({
+      slug: z.string(),
+      eyebrow: z.string(),
+      title: z.string(),
+      summary: z.string(),
+      notice: z.string().optional(),
+      url: z.string(),
+      sections: z.array(QualitySectionSchema),
+    })
+  ),
+});
+
+export const MentoringDataSchema = z.object({
+  url: z.string(),
+  pageUrl: z.string(),
+  audiences: z.array(z.object({ title: z.string(), body: z.string() })),
+  topics: z.array(z.string()),
+  sessions: z.array(z.object({ name: z.string(), format: z.string(), length: z.string(), free: z.boolean() })),
 });
 
 export const PostMetaSchema = z.object({

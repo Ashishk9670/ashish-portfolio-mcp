@@ -15,6 +15,9 @@ Built as a companion to the portfolio site itself: [`ashishk9670/portfolio`](htt
 | `get_skills` | Skills by category, plus the tools actually used and why |
 | `get_about` | Career timeline, engineering philosophy, education, certifications |
 | `get_contact_info` | Email, GitHub, LinkedIn, and current availability status |
+| `get_hiring_info` | Target roles, notice period, relocation, interview formats, and core strengths |
+| `get_quality_metrics` | Quality metrics with their sources, plus the quality-engineering case studies |
+| `get_mentoring` | Career-guidance topics, session types, and the booking link |
 | `list_blog_posts` | Blog post titles, descriptions, and dates |
 | `get_blog_post` | Full Markdown content of one post, by slug |
 

@@ -1,6 +1,9 @@
 import {
   AboutDataSchema,
   ExperienceEntrySchema,
+  HiringDataSchema,
+  MentoringDataSchema,
+  QualityDataSchema,
   PostMetaSchema,
   PostSchema,
   ProfileSchema,
@@ -39,6 +42,18 @@ export async function getSkills() {
 
 export async function getAbout() {
   return AboutDataSchema.parse(await fetchJson("about.json"));
+}
+
+export async function getHiring() {
+  return HiringDataSchema.parse(await fetchJson("hiring.json"));
+}
+
+export async function getQuality() {
+  return QualityDataSchema.parse(await fetchJson("quality.json"));
+}
+
+export async function getMentoring() {
+  return MentoringDataSchema.parse(await fetchJson("mentoring.json"));
 }
 
 export async function listPosts() {

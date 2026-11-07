@@ -62,6 +62,9 @@ describe("classification helpers", () => {
     expect(normalizeSource("github.com")).toBe("GitHub");
     expect(normalizeSource("t.co")).toBe("X / Twitter");
     expect(normalizeSource("chatgpt.com")).toBe("AI assistant");
+    expect(normalizeSource("mcp")).toBe("AI assistant (MCP)");
+    expect(normalizeSource("resume")).toBe("Resume PDF");
+    expect(normalizeSource("topmate")).toBe("Topmate");
     expect(normalizeSource("news.ycombinator.com")).toBe("news.ycombinator.com");
   });
 
