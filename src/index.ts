@@ -3,7 +3,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerPortfolioTools } from "./tools";
 import { extractLocation, getVisits, recordVisit } from "./visitors";
 import { isRateLimited, sendContactMessage } from "./messages";
-import { handleEvent, handleStats, pruneEvents, statsCorsHeaders, type AnalyticsEnv } from "./analytics";
+import { handleEvent, handleStats, pruneEvents, statsCorsHeaders, tokenMatches, type AnalyticsEnv } from "./analytics";
+import { askCorsHeaders, handleAsk, type AssistantEnv } from "./assistant";
+import { WEEKLY_DIGEST_CRON, sendWeeklyDigest } from "./digest";
 
 export class PortfolioMCP extends McpAgent {
   server = new McpServer({ name: "ashish-kumar-portfolio", version: "1.0.0" });
@@ -13,7 +15,7 @@ export class PortfolioMCP extends McpAgent {
   }
 }
 
-type Env = AnalyticsEnv & {
+type Env = AnalyticsEnv & AssistantEnv & {
   VISITORS: KVNamespace;
   RESEND_API_KEY: string;
 };
@@ -37,6 +39,19 @@ export default {
     if (url.pathname === "/stats") {
       if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: statsCorsHeaders(request) });
       if (request.method === "GET") return handleStats(request, env, Date.now());
+    }
+
+    if (url.pathname === "/ask") {
+      if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: askCorsHeaders(request) });
+      if (request.method === "POST") return handleAsk(request, env, Date.now());
+    }
+
+    // Sends the weekly analytics digest on demand (same token as /stats).
+    if (url.pathname === "/digest" && request.method === "POST") {
+      const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
+      if (!(await tokenMatches(token, env.STATS_TOKEN))) return new Response(null, { status: 401 });
+      const result = await sendWeeklyDigest(env, Date.now());
+      return new Response(JSON.stringify(result), { status: result.ok ? 200 : 502, headers: { "Content-Type": "application/json" } });
     }
 
     if (url.pathname === "/event" && request.method === "POST") {
@@ -98,7 +113,11 @@ export default {
     );
   },
 
-  async scheduled(_controller: ScheduledController, env: Env) {
+  async scheduled(controller: ScheduledController, env: Env) {
+    if (controller.cron === WEEKLY_DIGEST_CRON) {
+      await sendWeeklyDigest(env, Date.now());
+      return;
+    }
     await pruneEvents(env.ANALYTICS, Date.now());
   },
 };

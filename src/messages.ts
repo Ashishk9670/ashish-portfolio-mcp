@@ -4,7 +4,7 @@ import { ContactMessageSchema } from "./schemas";
 // sandbox sender (onboarding@resend.dev, used below since there's no verified
 // custom domain) can only deliver to the address the Resend account itself
 // was signed up with. The two happen to be different addresses here.
-const NOTIFY_EMAIL = "ashish.lumia9670@gmail.com";
+export const NOTIFY_EMAIL = "ashish.lumia9670@gmail.com";
 
 const RATE_LIMIT_PREFIX = "msg-rate:";
 const RATE_LIMIT_MAX = 3;

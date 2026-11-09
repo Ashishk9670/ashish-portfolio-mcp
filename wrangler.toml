@@ -31,7 +31,16 @@ name = "EVENT_LIMITER"
 namespace_id = "1001"
 simple = { limit = 120, period = 60 }
 
-# Daily retention sweep: raw events older than 90 days are deleted.
+# Per-client guard for the "Ask about Ashish" assistant (the key is never stored).
+[[ratelimits]]
+name = "ASK_LIMITER"
+namespace_id = "1002"
+simple = { limit = 6, period = 60 }
+
+[ai]
+binding = "AI"
+
+# Daily retention sweep (03:17 UTC) and the weekly analytics digest (Mondays 03:30 UTC = 09:00 IST).
 [triggers]
-crons = ["17 3 * * *"]
+crons = ["17 3 * * *", "30 3 * * 1"]
 
