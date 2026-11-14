@@ -51,6 +51,7 @@ const SOURCES: [RegExp, string][] = [
   [/(^|\.)(chatgpt\.com|openai\.com|perplexity\.ai|claude\.ai)$/, "AI assistant"],
   [/^mcp$/, "AI assistant (MCP)"],
   [/^resume$/, "Resume PDF"],
+  [/(^|\.)(whatsapp\.com|wa\.me)$|^whatsapp$/, "WhatsApp"],
 ];
 
 // `raw` is either a utm_source value or the referring hostname.
@@ -113,7 +114,7 @@ export async function getStats(db: D1Database, rangeDays: number, now: number) {
     `SELECT SUM(type = 'pageview') AS pageviews,
             COUNT(DISTINCT CASE WHEN type = 'pageview' THEN session END) AS sessions,
             SUM(type = 'click') AS clicks
-       FROM events WHERE ts >= ?`,
+       FROM events WHERE ts >= ? AND path NOT LIKE '/marriage%'`,
     since
   );
   const [engagement] = await all(
@@ -121,7 +122,7 @@ export async function getStats(db: D1Database, rangeDays: number, now: number) {
     // A page view can flush engagement more than once (tab hidden, then shown
     // again), so time is summed per session+page before averaging.
     `SELECT AVG(total) AS avgSeconds FROM (
-       SELECT SUM(seconds) AS total FROM events WHERE type = 'engagement' AND ts >= ? GROUP BY session, path
+       SELECT SUM(seconds) AS total FROM events WHERE type = 'engagement' AND ts >= ? AND path NOT LIKE '/marriage%' GROUP BY session, path
      )`,
     since
   );
@@ -129,7 +130,7 @@ export async function getStats(db: D1Database, rangeDays: number, now: number) {
   const dailyRows = await all(
     db,
     `SELECT day, COUNT(*) AS pageviews, COUNT(DISTINCT session) AS sessions
-       FROM events WHERE type = 'pageview' AND ts >= ? GROUP BY day`,
+       FROM events WHERE type = 'pageview' AND ts >= ? AND path NOT LIKE '/marriage%' GROUP BY day`,
     since
   );
   const byDay = new Map(dailyRows.map((r) => [String(r.day), r]));
@@ -142,7 +143,7 @@ export async function getStats(db: D1Database, rangeDays: number, now: number) {
   const pageRows = await all(
     db,
     `SELECT path, COUNT(*) AS views, COUNT(DISTINCT session) AS sessions
-       FROM events WHERE type = 'pageview' AND ts >= ?
+       FROM events WHERE type = 'pageview' AND ts >= ? AND path NOT LIKE '/marriage%'
        GROUP BY path ORDER BY views DESC LIMIT 25`,
     since
   );
@@ -150,7 +151,7 @@ export async function getStats(db: D1Database, rangeDays: number, now: number) {
     db,
     `SELECT path, AVG(total) AS avgSeconds, AVG(depth) AS avgScroll FROM (
        SELECT path, SUM(seconds) AS total, MAX(scroll) AS depth
-         FROM events WHERE type = 'engagement' AND ts >= ? GROUP BY session, path
+         FROM events WHERE type = 'engagement' AND ts >= ? AND path NOT LIKE '/marriage%' GROUP BY session, path
      ) GROUP BY path`,
     since
   );
@@ -169,41 +170,41 @@ export async function getStats(db: D1Database, rangeDays: number, now: number) {
   const entries = await all(
     db,
     `SELECT path, COUNT(*) AS sessions FROM events
-      WHERE type = 'pageview' AND source IS NOT NULL AND ts >= ?
+      WHERE type = 'pageview' AND source IS NOT NULL AND ts >= ? AND path NOT LIKE '/marriage%'
       GROUP BY path ORDER BY sessions DESC LIMIT 10`,
     since
   );
   const referrers = await all(
     db,
     `SELECT source, COUNT(*) AS sessions FROM events
-      WHERE type = 'pageview' AND source IS NOT NULL AND ts >= ?
+      WHERE type = 'pageview' AND source IS NOT NULL AND ts >= ? AND path NOT LIKE '/marriage%'
       GROUP BY source ORDER BY sessions DESC LIMIT 15`,
     since
   );
   const clicks = await all(
     db,
     `SELECT label, target, path, action, COUNT(*) AS clicks FROM events
-      WHERE type = 'click' AND ts >= ?
+      WHERE type = 'click' AND ts >= ? AND path NOT LIKE '/marriage%'
       GROUP BY label, target, path, action ORDER BY clicks DESC LIMIT 30`,
     since
   );
   const keyActions = await all(
     db,
     `SELECT action, COUNT(*) AS clicks, COUNT(DISTINCT session) AS sessions FROM events
-      WHERE type = 'click' AND action IS NOT NULL AND ts >= ?
+      WHERE type = 'click' AND action IS NOT NULL AND ts >= ? AND path NOT LIKE '/marriage%'
       GROUP BY action ORDER BY clicks DESC`,
     since
   );
   const countries = await all(
     db,
     `SELECT COALESCE(country, 'Unknown') AS country, COUNT(DISTINCT session) AS sessions FROM events
-      WHERE type = 'pageview' AND ts >= ? GROUP BY country ORDER BY sessions DESC LIMIT 15`,
+      WHERE type = 'pageview' AND ts >= ? AND path NOT LIKE '/marriage%' GROUP BY country ORDER BY sessions DESC LIMIT 15`,
     since
   );
   const devices = await all(
     db,
     `SELECT COALESCE(device, 'unknown') AS device, COUNT(DISTINCT session) AS sessions FROM events
-      WHERE type = 'pageview' AND ts >= ? GROUP BY device ORDER BY sessions DESC`,
+      WHERE type = 'pageview' AND ts >= ? AND path NOT LIKE '/marriage%' GROUP BY device ORDER BY sessions DESC`,
     since
   );
 
@@ -212,18 +213,39 @@ export async function getStats(db: D1Database, rangeDays: number, now: number) {
     db,
     `SELECT
        (SELECT COUNT(DISTINCT session) FROM events
-         WHERE type = 'pageview' AND path = '/experience' AND ts >= ?) AS viewedDossier,
+         WHERE type = 'pageview' AND path = '/experience' AND ts >= ? AND path NOT LIKE '/marriage%') AS viewedDossier,
        (SELECT COUNT(DISTINCT session) FROM events
-         WHERE type = 'click' AND action IN (${conversion}) AND ts >= ?) AS reachedOut,
+         WHERE type = 'click' AND action IN (${conversion}) AND ts >= ? AND path NOT LIKE '/marriage%') AS reachedOut,
        (SELECT COUNT(DISTINCT session) FROM events
-         WHERE type = 'click' AND action IN (${conversion}) AND ts >= ?
-           AND session IN (SELECT session FROM events WHERE type = 'pageview' AND path = '/experience' AND ts >= ?)
+         WHERE type = 'click' AND action IN (${conversion}) AND ts >= ? AND path NOT LIKE '/marriage%'
+           AND session IN (SELECT session FROM events WHERE type = 'pageview' AND path = '/experience' AND ts >= ? AND path NOT LIKE '/marriage%')
        ) AS dossierThenReachedOut`,
     since,
     ...CONVERSION_ACTIONS,
     since,
     ...CONVERSION_ACTIONS,
     since,
+    since
+  );
+
+  // The unlisted biodata pages are reported on their own, never mixed into the portfolio numbers.
+  const [biodataTotals] = await all(
+    db,
+    `SELECT COUNT(*) AS views, COUNT(DISTINCT session) AS visits FROM events
+      WHERE type = 'pageview' AND path LIKE '/marriage%' AND ts >= ?`,
+    since
+  );
+  const biodataPages = await all(
+    db,
+    `SELECT path, COUNT(*) AS views FROM events
+      WHERE type = 'pageview' AND path LIKE '/marriage%' AND ts >= ? GROUP BY path ORDER BY views DESC`,
+    since
+  );
+  const biodataSources = await all(
+    db,
+    `SELECT source, COUNT(*) AS visits FROM events
+      WHERE type = 'pageview' AND path LIKE '/marriage%' AND source IS NOT NULL AND ts >= ?
+      GROUP BY source ORDER BY visits DESC LIMIT 10`,
     since
   );
 
@@ -250,6 +272,12 @@ export async function getStats(db: D1Database, rangeDays: number, now: number) {
     keyActions: keyActions.map((r) => ({ action: String(r.action), clicks: num(r.clicks), sessions: num(r.sessions) })),
     countries: countries.map((r) => ({ country: String(r.country), sessions: num(r.sessions) })),
     devices: devices.map((r) => ({ device: String(r.device), sessions: num(r.sessions) })),
+    biodata: {
+      views: num(biodataTotals?.views),
+      visits: num(biodataTotals?.visits),
+      pages: biodataPages.map((r) => ({ path: String(r.path), views: num(r.views) })),
+      sources: biodataSources.map((r) => ({ source: String(r.source), visits: num(r.visits) })),
+    },
     funnel: {
       sessions: num(totals?.sessions),
       viewedDossier: num(funnel?.viewedDossier),

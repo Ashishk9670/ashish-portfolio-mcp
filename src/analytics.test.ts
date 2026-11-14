@@ -234,3 +234,30 @@ describe("stats access", () => {
     expect(res.headers.get("access-control-allow-origin")).toBeNull();
   });
 });
+
+describe("biodata views", () => {
+  it("are counted on their own and kept out of the portfolio numbers", async () => {
+    const db = createTestD1();
+    await insertEvent(db, pageview("sess-port", "/", { entry: true }), { now: NOW });
+    await insertEvent(db, pageview("sess-bio1", "/marriage", { entry: true, source: "whatsapp" }), { now: NOW });
+    await insertEvent(db, pageview("sess-bio1", "/marriage/hi"), { now: NOW });
+    await insertEvent(db, pageview("sess-bio2", "/marriage", { entry: true }), { now: NOW });
+
+    const stats = await getStats(db, 7, NOW);
+    expect(stats.totals.pageviews).toBe(1);
+    expect(stats.pages.map((p) => p.path)).toEqual(["/"]);
+    expect(stats.referrers).toEqual([{ source: "Direct", sessions: 1 }]);
+    expect(stats.biodata).toEqual({
+      views: 3,
+      visits: 2,
+      pages: [
+        { path: "/marriage", views: 2 },
+        { path: "/marriage/hi", views: 1 },
+      ],
+      sources: expect.arrayContaining([
+        { source: "WhatsApp", visits: 1 },
+        { source: "Direct", visits: 1 },
+      ]),
+    });
+  });
+});

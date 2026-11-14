@@ -92,6 +92,16 @@ export function buildDigest(stats: Stats, previous: PreviousTotals, now: number)
       "No visits this week."
     ),
     section(
+      "Biodata (private)",
+      stats.biodata.views
+        ? [
+            { label: "Views", value: `${stats.biodata.views} (${stats.biodata.visits} visits)` },
+            ...stats.biodata.sources.slice(0, 3).map((r) => ({ label: `From ${r.source}`, value: String(r.visits) })),
+          ]
+        : [],
+      "No biodata views this week."
+    ),
+    section(
       "Where visits came from",
       stats.referrers.slice(0, 5).map((r) => ({ label: r.source, value: String(r.sessions) })),
       "No visits this week."
