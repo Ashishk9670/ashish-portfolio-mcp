@@ -52,6 +52,7 @@ const SOURCES: [RegExp, string][] = [
   [/^mcp$/, "AI assistant (MCP)"],
   [/^resume$/, "Resume PDF"],
   [/(^|\.)(whatsapp\.com|wa\.me)$|^whatsapp$/, "WhatsApp"],
+  [/^qr$/, "QR code"],
 ];
 
 // `raw` is either a utm_source value or the referring hostname.
